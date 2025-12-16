@@ -254,8 +254,8 @@ if ( function_exists( 'wpml_object_id_filter' ) ) {
 					<td class="two-cols">
 						<?php
 						// Calculate insurance amount: insurance_percent % of the current total
-						$insurance_amount = ($total * $insurance_percent) / 100;
-						echo wc_price($insurance_amount);
+						$insurance_amount = $insurance_percent * $car_rent['days'];
+						echo wc_price($insurance_amount);					
 						?>
 					</td>
 				</tr>
@@ -268,7 +268,7 @@ if ( function_exists( 'wpml_object_id_filter' ) ) {
 				<td><?php 
 					if ($insurance_percent > 0) {
 						// Add insurance to total
-						$insurance_amount = ($total * $insurance_percent) / 100;
+						$insurance_amount = $insurance_percent * $car_rent['days'];
 						$new_total = $total + $insurance_amount;
 						echo wp_kses_post(wc_price($new_total));
 					} else {
@@ -341,7 +341,7 @@ if ( function_exists( 'wpml_object_id_filter' ) ) {
 					// Calculate final total including insurance
 					$final_total = $total;
 					if ($insurance_percent > 0) {
-						$insurance_amount = ($total * $insurance_percent) / 100;
+						$insurance_amount = $insurance_percent * $car_rent['days'];
 						$final_total += $insurance_amount;
 					}
 					

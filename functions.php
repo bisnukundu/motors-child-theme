@@ -110,12 +110,45 @@ function add_insurance_fee_to_checkout($cart) {
         }
         
         if ($insurance_percent > 0) {
-            // Calculate insurance amount based on cart subtotal
-            $subtotal = $cart->get_subtotal();
-            $insurance_amount = ($subtotal * $insurance_percent) / 100;
+            // Get rental cart data to access days
+            $car_rent_days = 0;
+            $car_rent_price = 0;
             
-            // Add insurance fee
-            $cart->add_fee('Insurance Coverage (' . $insurance_percent . '%)', $insurance_amount);
+            // Method 1: Try to get from rental cart session data
+            if (function_exists('stm_get_cart_items')) {
+                $cart_items = stm_get_cart_items();
+                if (!empty($cart_items['car_class']) && isset($cart_items['car_class']['days'])) {
+                    $car_rent_days = $cart_items['car_class']['days'];
+                    $car_rent_price = $cart_items['car_class']['price'];
+                }
+            }
+            
+            // Method 2: Try to get from WC session rental data
+            if ($car_rent_days == 0 && function_exists('WC') && isset(WC()->session)) {
+                $rental_data = WC()->session->get('stm_rental_data');
+                if (!empty($rental_data['days'])) {
+                    $car_rent_days = $rental_data['days'];
+                }
+            }
+            
+            // Method 3: Try to get from cart contents
+            if ($car_rent_days == 0) {
+                foreach ($cart->get_cart() as $cart_item) {
+                    if (isset($cart_item['stm_rental_data']['days'])) {
+                        $car_rent_days = $cart_item['stm_rental_data']['days'];
+                        $car_rent_price = $cart_item['stm_rental_data']['price'];
+                        break;
+                    }
+                }
+            }
+            
+            // Calculate insurance amount: insurance_percent * days (as per your requirement)
+            if ($car_rent_days > 0) {
+                $insurance_amount = $insurance_percent * $car_rent_days;
+                
+                // Add insurance fee
+                $cart->add_fee('Insurance Coverage (' . $insurance_percent . '% x ' . $car_rent_days . ' days)', $insurance_amount);
+            }
         }
     }
 }
