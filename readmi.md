@@ -1,0 +1,1 @@
+To use search filter by car_tag, go to the page builder and put this "car_filter" in the Query_ID input box.![alt text](image.png)
