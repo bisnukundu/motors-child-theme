@@ -8,51 +8,55 @@ define("BK_FILE_PATH", get_stylesheet_directory());
 
 require_once(BK_FILE_PATH . "/Backend/Controller/Car_Filter_By_Tag.php");
 
+
 use Bisnu\Backend\Controller\Car_Filter_By_Tag;
 
 
 new Car_Filter_By_Tag();
 
 
-function add_insurance_to_rental_cart_js() {
+
+function add_insurance_to_rental_cart_js()
+{
     if (is_page('rental-cart') || is_page('booking')) {
-        ?>
+?>
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get current insurance from hidden input or sessionStorage
-            const insuranceInput = document.querySelector('input[name="insurance"]');
-            let insuranceValue = '0';
-            
-            if (insuranceInput && insuranceInput.value) {
-                insuranceValue = insuranceInput.value;
-            } else if (sessionStorage.getItem('selected_insurance')) {
-                insuranceValue = sessionStorage.getItem('selected_insurance');
-            } else if (localStorage.getItem('selected_insurance')) {
-                insuranceValue = localStorage.getItem('selected_insurance');
-            }
-            
-            // Add insurance parameter to all rental cart related links
-            const links = document.querySelectorAll('a[href*="rental-cart"], a[href*="booking"], a[href*="add-to-cart"]');
-            links.forEach(link => {
-                const url = new URL(link.href);
-                if (!url.searchParams.get('insurance')) {
-                    url.searchParams.set('insurance', insuranceValue);
-                    link.href = url.toString();
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get current insurance from hidden input or sessionStorage
+                const insuranceInput = document.querySelector('input[name="insurance"]');
+                let insuranceValue = '0';
+
+                if (insuranceInput && insuranceInput.value) {
+                    insuranceValue = insuranceInput.value;
+                } else if (sessionStorage.getItem('selected_insurance')) {
+                    insuranceValue = sessionStorage.getItem('selected_insurance');
+                } else if (localStorage.getItem('selected_insurance')) {
+                    insuranceValue = localStorage.getItem('selected_insurance');
                 }
+
+                // Add insurance parameter to all rental cart related links
+                const links = document.querySelectorAll('a[href*="rental-cart"], a[href*="booking"], a[href*="add-to-cart"]');
+                links.forEach(link => {
+                    const url = new URL(link.href);
+                    if (!url.searchParams.get('insurance')) {
+                        url.searchParams.set('insurance', insuranceValue);
+                        link.href = url.toString();
+                    }
+                });
             });
-        });
         </script>
-        <?php
+<?php
     }
 }
 add_action('wp_footer', 'add_insurance_to_rental_cart_js');
 
 // Add insurance to cart item data when booking
-function add_insurance_to_rental_cart($cart_item_data, $product_id, $variation_id = 0, $quantity = 0) {
+function add_insurance_to_rental_cart($cart_item_data, $product_id, $variation_id = 0, $quantity = 0)
+{
     if (isset($_GET['insurance']) && in_array($_GET['insurance'], [0, 15, 30])) {
         $insurance = intval($_GET['insurance']);
         $cart_item_data['insurance'] = $insurance;
-        
+
         // Also store in session
         if (function_exists('WC') && isset(WC()->session)) {
             WC()->session->set('rental_insurance', $insurance);
@@ -63,10 +67,11 @@ function add_insurance_to_rental_cart($cart_item_data, $product_id, $variation_i
 add_filter('woocommerce_add_cart_item_data', 'add_insurance_to_rental_cart', 10, 4);
 
 // Automatically add insurance parameter to reservation links
-function add_insurance_to_reservation_links($link, $product = null) {
+function add_insurance_to_reservation_links($link, $product = null)
+{
     if (isset($_GET['insurance']) && in_array($_GET['insurance'], [0, 15, 30])) {
         $insurance = intval($_GET['insurance']);
-        
+
         // Only add to reservation/booking related links
         if (strpos($link, 'reservation') !== false || strpos($link, 'add-to-cart') !== false) {
             $separator = strpos($link, '?') !== false ? '&' : '?';
@@ -79,7 +84,8 @@ add_filter('the_permalink', 'add_insurance_to_reservation_links', 20, 2);
 add_filter('post_permalink', 'add_insurance_to_reservation_links', 20, 2);
 
 // Hook into Motors theme specific functions
-function modify_motors_reservation_url($url) {
+function modify_motors_reservation_url($url)
+{
     if (isset($_GET['insurance']) && in_array($_GET['insurance'], [0, 15, 30])) {
         $insurance = intval($_GET['insurance']);
         $separator = strpos($url, '?') !== false ? '&' : '?';
@@ -95,11 +101,12 @@ add_filter('stm_rental_cart_url', 'modify_motors_reservation_url');
 
 
 // Add insurance fee to cart total
-function add_insurance_fee_to_checkout($cart) {
+function add_insurance_fee_to_checkout($cart)
+{
     if (is_checkout() && !is_admin()) {
         // Get insurance from URL or session
         $insurance_percent = 0;
-        
+
         if (isset($_GET['insurance']) && in_array($_GET['insurance'], [0, 15, 30])) {
             $insurance_percent = intval($_GET['insurance']);
         } elseif (function_exists('WC') && isset(WC()->session)) {
@@ -108,12 +115,12 @@ function add_insurance_fee_to_checkout($cart) {
                 $insurance_percent = $session_insurance;
             }
         }
-        
+
         if ($insurance_percent > 0) {
             // Get rental cart data to access days
             $car_rent_days = 0;
             $car_rent_price = 0;
-            
+
             // Method 1: Try to get from rental cart session data
             if (function_exists('stm_get_cart_items')) {
                 $cart_items = stm_get_cart_items();
@@ -122,7 +129,7 @@ function add_insurance_fee_to_checkout($cart) {
                     $car_rent_price = $cart_items['car_class']['price'];
                 }
             }
-            
+
             // Method 2: Try to get from WC session rental data
             if ($car_rent_days == 0 && function_exists('WC') && isset(WC()->session)) {
                 $rental_data = WC()->session->get('stm_rental_data');
@@ -130,7 +137,7 @@ function add_insurance_fee_to_checkout($cart) {
                     $car_rent_days = $rental_data['days'];
                 }
             }
-            
+
             // Method 3: Try to get from cart contents
             if ($car_rent_days == 0) {
                 foreach ($cart->get_cart() as $cart_item) {
@@ -141,11 +148,11 @@ function add_insurance_fee_to_checkout($cart) {
                     }
                 }
             }
-            
+
             // Calculate insurance amount: insurance_percent * days (as per your requirement)
             if ($car_rent_days > 0) {
                 $insurance_amount = $insurance_percent * $car_rent_days;
-                
+
                 // Add insurance fee
                 $cart->add_fee('Insurance Coverage (' . $insurance_percent . '% x ' . $car_rent_days . ' days)', $insurance_amount);
             }
