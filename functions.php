@@ -153,3 +153,9 @@ function add_insurance_fee_to_checkout($cart) {
     }
 }
 add_action('woocommerce_cart_calculate_fees', 'add_insurance_fee_to_checkout');
+
+
+
+
+
+require_once(get_stylesheet_directory() . '/elementor-widgets/rental-addons-widget.php');

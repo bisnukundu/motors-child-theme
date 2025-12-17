@@ -10,6 +10,7 @@ $discount     = ( class_exists( 'DiscountByDays' ) ) ? DiscountByDays::get_days_
 $fixedPrice   = ( class_exists( 'PriceForQuantityDays' ) ) ? PriceForQuantityDays::getFixedPrice( $id ) : null;
 $fields       = stm_get_rental_order_fields_values();
 
+
 // Get insurance from reservation cart data (not from URL)
 $insurance_percent = 0;
 
