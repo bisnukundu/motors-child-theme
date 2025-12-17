@@ -344,6 +344,7 @@ if ( function_exists( 'wpml_object_id_filter' ) ) {
 					if ($insurance_percent > 0) {
 						$insurance_amount = $insurance_percent * $car_rent['days'];
 						$final_total += $insurance_amount;
+						$final_total += $cart_items['option_total'];
 					}
 					
 					// Add tax if applicable
